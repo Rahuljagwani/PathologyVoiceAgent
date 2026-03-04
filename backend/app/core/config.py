@@ -20,11 +20,6 @@ class Settings(BaseSettings):
     BOLNA_AGENT_ID: str = ""
     BOLNA_WEBHOOK_SECRET: str = ""
 
-    # Exotel
-    EXOTEL_API_KEY: str = ""
-    EXOTEL_API_TOKEN: str = ""
-    EXOTEL_SID: str = ""
-
     # Auth
     JWT_SECRET: str = "change-me"
     JWT_ALGORITHM: str = "HS256"

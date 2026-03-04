@@ -65,5 +65,5 @@ npm run dev
 
 ### External services
 
-Supabase, Bolna, and Exotel configuration are represented only as environment variables in Commit 1. You can leave their values blank for now; later commits will use them when implementing schema, call flows, and telephony.
+Supabase, Bolna, and Twilio configuration are represented only as environment variables in Commit 1. You can leave their values blank for now; later commits will use them when implementing schema, call flows, and telephony.
 

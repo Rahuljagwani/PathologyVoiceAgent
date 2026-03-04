@@ -79,9 +79,9 @@ export function Settings() {
             Call Forwarding Instructions
           </h2>
           <p className="rounded-md border border-dashed border-slate-300 bg-slate-50 p-3 text-xs text-slate-700">
-            To forward your lab number, dial:{' '}
+            To forward your existing lab number to your Twilio number, dial:{' '}
             <span className="font-semibold">
-              *21*[Exotel Number]#
+              *21*[Twilio Number]#
             </span>{' '}
             from your landline.
           </p>

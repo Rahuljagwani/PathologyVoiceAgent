@@ -58,7 +58,6 @@ create table if not exists lab_settings (
   -- Voice Agent Config
   escalation_phone varchar(15) not null,
   language_preference varchar(10) default 'hi',
-  exotel_number varchar(15),
   bolna_agent_id varchar(100),
   -- Meta
   onboarding_complete boolean default false,
