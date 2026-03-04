@@ -1,4 +1,65 @@
+import { useEffect, useState } from 'react'
+
+import { api, getCurrentLabId } from '../api/client'
+
+interface ReportRow {
+  id: string
+  token_number: string | null
+  patient_name: string
+  patient_phone: string
+  test_name: string
+  sample_date: string
+  expected_ready_time: string | null
+  status: string
+}
+
 export function ReportStatusManager() {
+  const [reports, setReports] = useState<ReportRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [markingId, setMarkingId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const labId = getCurrentLabId()
+    if (!labId) return
+
+    async function load() {
+      try {
+        setLoading(true)
+        setError(null)
+        const data = await api.get<ReportRow[]>('/reports', {
+          auth: true,
+          query: { lab_id: labId },
+        })
+        setReports(data)
+      } catch (err) {
+        console.error(err)
+        setError('Could not load reports.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    void load()
+  }, [])
+
+  async function markReady(id: string) {
+    try {
+      setMarkingId(id)
+      await api.put<ReportRow>(`/reports/${id}/mark-ready`, { auth: true })
+      setReports((prev) =>
+        prev.map((r) =>
+          r.id === id ? { ...r, status: 'ready', expected_ready_time: r.expected_ready_time } : r,
+        ),
+      )
+    } catch (err) {
+      console.error(err)
+      alert('Failed to mark report ready')
+    } finally {
+      setMarkingId(null)
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
@@ -7,13 +68,9 @@ export function ReportStatusManager() {
             Report Status Manager
           </h1>
           <p className="text-sm text-slate-500">
-            Staff marks reports ready. Voice agent will read from this table in
-            later commits.
+            Staff marks reports ready. The voice agent reads from this table.
           </p>
         </div>
-        <button className="inline-flex items-center justify-center rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-700">
-          Add Report
-        </button>
       </div>
 
       <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
@@ -22,72 +79,85 @@ export function ReportStatusManager() {
             <span className="rounded-full bg-slate-900 px-3 py-1 text-white">
               All
             </span>
-            <span className="rounded-full bg-slate-100 px-3 py-1">Pending</span>
-            <span className="rounded-full bg-slate-100 px-3 py-1">Ready</span>
-            <span className="rounded-full bg-slate-100 px-3 py-1">Today</span>
           </div>
-          <input
-            type="search"
-            placeholder="Search by token, name, or phone"
-            className="w-full max-w-xs rounded-md border border-slate-200 px-3 py-1.5 text-sm shadow-sm focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400"
-          />
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
-            <thead className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
-              <tr>
-                <th className="px-3 py-2">Token</th>
-                <th className="px-3 py-2">Patient</th>
-                <th className="px-3 py-2">Phone</th>
-                <th className="px-3 py-2">Test</th>
-                <th className="px-3 py-2">Sample Date</th>
-                <th className="px-3 py-2">Expected</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              <tr>
-                <td className="px-3 py-2 text-xs text-slate-500">T-1023</td>
-                <td className="px-3 py-2">Rahul Sharma</td>
-                <td className="px-3 py-2 text-slate-600">+91-98765-XXXX</td>
-                <td className="px-3 py-2 text-slate-700">Lipid Profile</td>
-                <td className="px-3 py-2 text-slate-600">Today</td>
-                <td className="px-3 py-2 text-slate-600">6:00 PM</td>
-                <td className="px-3 py-2">
-                  <span className="inline-flex rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">
-                    Pending
-                  </span>
-                </td>
-                <td className="px-3 py-2 text-right">
-                  <button className="rounded-md bg-emerald-600 px-2.5 py-1 text-xs font-medium text-white shadow-sm hover:bg-emerald-700">
-                    Mark Ready
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td className="px-3 py-2 text-xs text-slate-500">T-1022</td>
-                <td className="px-3 py-2">Sneha Iyer</td>
-                <td className="px-3 py-2 text-slate-600">+91-99887-XXXX</td>
-                <td className="px-3 py-2 text-slate-700">CBC</td>
-                <td className="px-3 py-2 text-slate-600">Today</td>
-                <td className="px-3 py-2 text-slate-600">Ready</td>
-                <td className="px-3 py-2">
-                  <span className="inline-flex rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
-                    Ready
-                  </span>
-                </td>
-                <td className="px-3 py-2 text-right text-xs text-slate-400">
-                  —
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p className="mt-3 text-xs text-slate-500">
-          47 reports today — 12 pending (static sample data for Commit 1).
-        </p>
+        {loading ? (
+          <p className="text-sm text-slate-500">Loading reports…</p>
+        ) : error ? (
+          <p className="text-sm text-red-600">{error}</p>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
+                <thead className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
+                  <tr>
+                    <th className="px-3 py-2">Token</th>
+                    <th className="px-3 py-2">Patient</th>
+                    <th className="px-3 py-2">Phone</th>
+                    <th className="px-3 py-2">Test</th>
+                    <th className="px-3 py-2">Sample Date</th>
+                    <th className="px-3 py-2">Status</th>
+                    <th className="px-3 py-2 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {reports.map((r) => (
+                    <tr key={r.id}>
+                      <td className="px-3 py-2 text-xs text-slate-500">
+                        {r.token_number || '—'}
+                      </td>
+                      <td className="px-3 py-2">{r.patient_name}</td>
+                      <td className="px-3 py-2 text-slate-600">
+                        {r.patient_phone}
+                      </td>
+                      <td className="px-3 py-2 text-slate-700">
+                        {r.test_name}
+                      </td>
+                      <td className="px-3 py-2 text-slate-600">
+                        {new Date(r.sample_date).toLocaleDateString()}
+                      </td>
+                      <td className="px-3 py-2">
+                        <span
+                          className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            r.status === 'ready'
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : 'bg-amber-100 text-amber-700'
+                          }`}
+                        >
+                          {r.status}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        {r.status === 'ready' ? (
+                          <span className="text-xs text-slate-400">—</span>
+                        ) : (
+                          <button
+                            className="rounded-md bg-emerald-600 px-2.5 py-1 text-xs font-medium text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                            onClick={() => void markReady(r.id)}
+                            disabled={markingId === r.id}
+                          >
+                            {markingId === r.id ? 'Marking…' : 'Mark Ready'}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {reports.length === 0 && (
+                    <tr>
+                      <td
+                        className="px-3 py-4 text-sm text-slate-500"
+                        colSpan={7}
+                      >
+                        No reports found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

@@ -7,13 +7,22 @@ import { ReportStatusManager } from './pages/ReportStatusManager'
 import { Settings } from './pages/Settings'
 import { TestPriceManager } from './pages/TestPriceManager'
 import { ShellLayout } from './components/ShellLayout'
+import { getCurrentLabId } from './api/client'
+
+function ProtectedLayout() {
+  const hasSession = !!getCurrentLabId()
+  if (!hasSession) {
+    return <Navigate to="/login" replace />
+  }
+  return <ShellLayout />
+}
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route element={<ShellLayout />}>
+        <Route element={<ProtectedLayout />}>
           <Route index element={<Navigate to="/dashboard/reports" replace />} />
           <Route path="/dashboard/reports" element={<ReportStatusManager />} />
           <Route

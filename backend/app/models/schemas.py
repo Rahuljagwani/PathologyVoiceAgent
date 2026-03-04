@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, constr
 
 
 # ── Auth ─────────────────────────────────────────────────────────
@@ -13,7 +13,7 @@ class SignupRequest(BaseModel):
     owner_name: str
     owner_email: EmailStr
     owner_phone: str
-    password: str
+    password: constr(min_length=8, max_length=72)
     address: str
     escalation_phone: str
     language_preference: Optional[str] = "hi"

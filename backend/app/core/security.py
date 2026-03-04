@@ -9,7 +9,7 @@ from passlib.context import CryptContext
 from app.core.config import get_settings
 from app.db.supabase import get_supabase_client
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
@@ -18,6 +18,12 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def get_password_hash(password: str) -> str:
+    # Basic length safeguard; PBKDF2 itself doesn't have the 72-byte limit that bcrypt has.
+    if len(password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password too short. Minimum length is 8 characters.",
+        )
     return pwd_context.hash(password)
 
 

@@ -1,4 +1,6 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+
+import { clearAuthSession } from '../api/client'
 
 const navItems = [
   { to: '/dashboard/reports', label: 'Reports' },
@@ -45,7 +47,7 @@ export function ShellLayout() {
           <div className="text-sm font-medium text-slate-700">
             Pathology Lab Voice Agent
           </div>
-          <div className="text-xs text-slate-500">MVP — Commit 1 (project-init)</div>
+          <HeaderRight />
         </header>
         <main className="flex-1 px-4 py-4 sm:px-6 lg:px-8">
           <Outlet />
@@ -54,4 +56,27 @@ export function ShellLayout() {
     </div>
   )
 }
+
+function HeaderRight() {
+  const navigate = useNavigate()
+
+  function handleLogout() {
+    clearAuthSession()
+    navigate('/login', { replace: true })
+  }
+
+  return (
+    <div className="flex items-center gap-3 text-xs text-slate-500">
+      <span className="hidden sm:inline">Signed in</span>
+      <button
+        type="button"
+        onClick={handleLogout}
+        className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+      >
+        Logout
+      </button>
+    </div>
+  )
+}
+
 
