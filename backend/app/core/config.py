@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import List, Optional
+from typing import List
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -31,7 +31,11 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
 
     # CORS
-    CORS_ALLOW_ORIGINS: List[str] = ["http://localhost:3000"]
+    # Include common local frontend ports by default (CRA: 3000, Vite: 5173).
+    CORS_ALLOW_ORIGINS: List[str] = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+    ]
 
 
 @lru_cache(maxsize=1)
