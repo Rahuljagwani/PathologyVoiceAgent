@@ -1,23 +1,35 @@
 -- 001_init_schema.sql
--- Core database schema for Pathology Lab Voice Agent
+-- Core multi-tenant schema for Pathology Lab Voice Agent
 
 -- Enable required extensions (Supabase/Postgres usually has these)
 create extension if not exists "pgcrypto";
 
--- Core tables
-create table if not exists labs (
+-- Tenants (organizations) represent pathology chains / brands.
+create table if not exists organizations (
   id uuid primary key default gen_random_uuid(),
   name varchar(200) not null,
   owner_name varchar(200),
-  owner_phone varchar(15) not null,
+  owner_email varchar(200),
+  created_at timestamp default now()
+);
+
+-- Labs represent individual branches/locations under an organization.
+create table if not exists labs (
+  id uuid primary key default gen_random_uuid(),
+  organization_id uuid references organizations(id),
+  name varchar(200) not null,
+  owner_name varchar(200),
+  owner_phone varchar(15),
   owner_email varchar(200),
   plan varchar(20) default 'starter',
   is_active boolean default true,
   created_at timestamp default now()
 );
 
+-- Users belong to an organization and may be scoped to a specific lab (branch).
 create table if not exists users (
   id uuid primary key default gen_random_uuid(),
+  organization_id uuid references organizations(id),
   lab_id uuid references labs(id),
   name varchar(200) not null,
   phone varchar(15),
@@ -28,6 +40,7 @@ create table if not exists users (
   created_at timestamp default now()
 );
 
+-- Per-branch settings that the voice agent reads from.
 create table if not exists lab_settings (
   id uuid primary key default gen_random_uuid(),
   lab_id uuid references labs(id) unique,
@@ -65,6 +78,7 @@ create table if not exists lab_settings (
   updated_at timestamp default now()
 );
 
+-- Reports are always scoped to a specific lab/branch.
 create table if not exists reports (
   id uuid primary key default gen_random_uuid(),
   lab_id uuid references labs(id),
@@ -80,6 +94,7 @@ create table if not exists reports (
   created_at timestamp default now()
 );
 
+-- Home collection bookings, scoped per lab/branch.
 create table if not exists home_collections (
   id uuid primary key default gen_random_uuid(),
   lab_id uuid references labs(id),
@@ -97,6 +112,7 @@ create table if not exists home_collections (
   created_at timestamp default now()
 );
 
+-- Per-lab test catalogue, used by pricing and preparation tools.
 create table if not exists test_price_master (
   id uuid primary key default gen_random_uuid(),
   lab_id uuid references labs(id),
@@ -113,6 +129,7 @@ create table if not exists test_price_master (
   updated_at timestamp default now()
 );
 
+-- Call logs per lab, used for automation rate and transparency.
 create table if not exists call_logs (
   id uuid primary key default gen_random_uuid(),
   lab_id uuid references labs(id),

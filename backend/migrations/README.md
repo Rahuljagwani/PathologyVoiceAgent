@@ -1,28 +1,32 @@
-# Backend Migrations
+Pathology Voice Agent – Database Migration
+==========================================
 
-This directory contains SQL migration files for the Supabase/PostgreSQL schema
-used by the Pathology Lab Voice Agent.
+This directory contains SQL migrations for creating the schema in Supabase
+(Postgres). It is **not** wired to any automatic migration tool – you run
+the SQL once in your Supabase project to create the tables.
 
-Tables defined in `001_init_schema.sql` (Commit 2 - `database-schema`):
+How to apply `001_init_schema.sql` in Supabase
+---------------------------------------------
 
+1. Log in to the Supabase dashboard and open your project.
+2. Go to **SQL Editor**.
+3. Create a new query.
+4. Copy-paste the contents of `001_init_schema.sql` from this repo.
+5. Make sure you are in the correct database (the project's default).
+6. Click **Run**.
+
+You should see all of these tables created:
+
+- `organizations`
 - `labs`
 - `users`
 - `lab_settings`
 - `reports`
 - `home_collections`
 - `test_price_master`
- - `call_logs`
+- `call_logs`
 
-Seed data for `test_price_master` (30 common pathology tests and panels) is
-defined in `002_seed_test_price_master.sql` so that the Bolna voice agent can
-answer pricing and preparation queries out of the box.
-
-### Applying migrations on Supabase
-
-For local development, you can apply these migrations in your Supabase project
-using the SQL editor or CLI:
-
-1. Open the Supabase SQL editor for your project.
-2. Paste and run `001_init_schema.sql` once.
-3. Paste and run `002_seed_test_price_master.sql` to load initial test prices.
+After this migration runs successfully, the FastAPI backend can connect
+via the Supabase service key in `.env` and all endpoints will have the
+expected tables available.
 

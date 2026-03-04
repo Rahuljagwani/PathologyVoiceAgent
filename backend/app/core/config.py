@@ -16,8 +16,7 @@ class Settings(BaseSettings):
     SUPABASE_SERVICE_KEY: str = ""
 
     # Bolna
-    BOLNA_API_KEY: str = ""
-    BOLNA_AGENT_ID: str = ""
+    # Optional shared secret used to validate incoming webhooks.
     BOLNA_WEBHOOK_SECRET: str = ""
 
     # Auth
