@@ -24,7 +24,6 @@ export function Login() {
   const [ownerPhone, setOwnerPhone] = useState('')
   const [address, setAddress] = useState('')
   const [escalationPhone, setEscalationPhone] = useState('')
-  const [languagePreference, setLanguagePreference] = useState('hi')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -65,7 +64,8 @@ export function Login() {
                 password,
                 address,
                 escalation_phone: escalationPhone,
-                language_preference: languagePreference,
+                // For now, default language preference to English.
+                language_preference: 'en',
               }),
             })
 
@@ -113,8 +113,53 @@ export function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-      <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="flex min-h-screen bg-slate-50">
+      {/* Brand sidebar – matches logged-in shell, visible on desktop */}
+      <aside className="hidden w-0 flex-col justify-between border-r border-slate-200 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 px-8 py-8 text-slate-50 transition-all duration-500 ease-out md:flex md:w-80 lg:w-96">
+        <div>
+          <div className="mb-6 flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-50/10 ring-1 ring-slate-50/20">
+              <span className="text-xs font-semibold text-emerald-400">PV</span>
+            </div>
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                Pathology Voice
+              </div>
+              <div className="text-sm font-semibold text-slate-50">Lab Dashboard</div>
+            </div>
+          </div>
+          <h2 className="mb-3 text-lg font-semibold text-slate-50">
+            Turn every missed call into a happy patient.
+          </h2>
+          <p className="text-xs text-slate-300">
+            The voice agent answers calls, shares test prices, and tracks reports while your staff
+            focuses on patients in the lab.
+          </p>
+        </div>
+        <div className="space-y-2 text-xs text-slate-300">
+          <p className="font-semibold text-slate-100">Demo checklist</p>
+          <ul className="space-y-1">
+            <li className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              <span>Signup or login as a lab.</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              <span>
+                Call <span className="font-semibold">+15705725797</span> to test the agent.
+              </span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              <span>Watch calls and reports update live in the dashboard.</span>
+            </li>
+          </ul>
+        </div>
+      </aside>
+
+      {/* Auth card */}
+      <div className="flex flex-1 items-center justify-center px-4">
+        <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="mb-4">
           <div className="flex rounded-full bg-slate-100 p-1 text-xs font-medium text-slate-600">
             <button
@@ -259,20 +304,7 @@ export function Login() {
                   required
                 />
               </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">
-                  Language Preference
-                </label>
-                <select
-                  className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-sm shadow-sm focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400"
-                  value={languagePreference}
-                  onChange={(e) => setLanguagePreference(e.target.value)}
-                >
-                  <option value="hi">Hindi (default)</option>
-                  <option value="en">English</option>
-                  <option value="kn">Kannada</option>
-                </select>
-              </div>
+              {/* Language preference is hidden for now; we default it to English in the payload. */}
             </>
           )}
           {error && (
@@ -294,6 +326,7 @@ export function Login() {
               : 'Create account'}
           </button>
         </form>
+        </div>
       </div>
     </div>
   )

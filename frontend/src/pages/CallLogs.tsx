@@ -103,6 +103,19 @@ export function CallLogs() {
             Full transparency on every call the voice agent handled.
           </p>
         </div>
+        <div className="flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">
+          <span
+            aria-hidden="true"
+            className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-[10px] font-semibold text-slate-50"
+          >
+            i
+          </span>
+          <span>
+            For demo, call{' '}
+            <span className="font-semibold text-slate-900">+15705725797</span>. Calls to
+            this number will appear here.
+          </span>
+        </div>
       </div>
 
       <div className="grid gap-3 md:grid-cols-3">

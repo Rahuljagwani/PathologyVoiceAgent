@@ -9,6 +9,7 @@ interface LabSettingsForm {
   lab_name: string
   address: string
   escalation_phone: string
+  // language_preference is temporarily fixed to English; field kept for compatibility.
   language_preference: string
   weekday_open?: string
   weekday_close?: string
@@ -37,7 +38,8 @@ export function Settings() {
     lab_name: '',
     address: '',
     escalation_phone: '',
-    language_preference: 'hi',
+    // Default language to English; UI control is hidden for now.
+    language_preference: 'en',
     home_collection_areas_text: '',
     home_collection_slots_text: '',
     payment_modes: [],
@@ -92,7 +94,8 @@ export function Settings() {
         lab_name: form.lab_name,
         address: form.address,
         escalation_phone: form.escalation_phone,
-        language_preference: form.language_preference,
+        // Keep sending language_preference for compatibility, but fixed to English.
+        language_preference: 'en',
         weekday_open: form.weekday_open || null,
         weekday_close: form.weekday_close || null,
         saturday_open: form.saturday_open || null,
@@ -473,22 +476,7 @@ export function Settings() {
                 onChange={(e) => update('escalation_phone', e.target.value)}
               />
             </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">
-                Language Preference
-              </label>
-              <select
-                className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-sm shadow-sm focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400"
-                value={form.language_preference}
-                onChange={(e) =>
-                  update('language_preference', e.target.value)
-                }
-              >
-                <option value="hi">Hindi (default)</option>
-                <option value="en">English</option>
-                <option value="kn">Kannada</option>
-              </select>
-            </div>
+            {/* Language preference selector is hidden for now; backend is always given English. */}
           </div>
           <div className="space-y-2 pt-2 text-xs text-slate-700">
             <h3 className="text-xs font-semibold text-slate-900">
