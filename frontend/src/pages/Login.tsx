@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { clearAuthSession, setAuthSession } from '../api/client'
+import { useToast } from '../components/ToastProvider'
 
 interface TokenResponse {
   access_token: string
@@ -13,6 +14,7 @@ interface TokenResponse {
 
 export function Login() {
   const navigate = useNavigate()
+  const { showToast } = useToast()
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -68,19 +70,43 @@ export function Login() {
             })
 
       if (!response.ok) {
-        throw new Error('Request failed')
+        const text = await response.text()
+        let message: string | null = null
+        if (text) {
+          try {
+            const data = JSON.parse(text) as { message?: string }
+            if (data && typeof data.message === 'string' && data.message.trim()) {
+              message = data.message
+            }
+          } catch {
+            // ignore JSON parse error
+          }
+        }
+        throw new Error(
+          message ||
+            (mode === 'login'
+              ? 'Login failed. Please check your credentials.'
+              : 'Signup failed. Please check the details and try again.'),
+        )
       }
 
       const data = (await response.json()) as TokenResponse
       setAuthSession({ accessToken: data.access_token, labId: data.lab_id })
       navigate('/dashboard/reports', { replace: true })
+      showToast({
+        type: 'success',
+        message: mode === 'login' ? 'Logged in successfully.' : 'Signup successful.',
+      })
     } catch (err) {
       console.error(err)
-      setError(
-        mode === 'login'
+      const msg =
+        err instanceof Error
+          ? err.message
+          : mode === 'login'
           ? 'Login failed. Please check your credentials.'
-          : 'Signup failed. Please check the details and try again.',
-      )
+          : 'Signup failed. Please check the details and try again.'
+      setError(msg)
+      showToast({ type: 'error', message: msg })
     } finally {
       setLoading(false)
     }

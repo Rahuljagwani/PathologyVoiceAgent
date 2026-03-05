@@ -8,6 +8,7 @@ import { Settings } from './pages/Settings'
 import { TestPriceManager } from './pages/TestPriceManager'
 import { ShellLayout } from './components/ShellLayout'
 import { getCurrentLabId } from './api/client'
+import { ToastProvider } from './components/ToastProvider'
 
 function ProtectedLayout() {
   const hasSession = !!getCurrentLabId()
@@ -19,22 +20,24 @@ function ProtectedLayout() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route element={<ProtectedLayout />}>
-          <Route index element={<Navigate to="/dashboard/reports" replace />} />
-          <Route path="/dashboard/reports" element={<ReportStatusManager />} />
-          <Route
-            path="/dashboard/home-collections"
-            element={<HomeCollectionCalendar />}
-          />
-          <Route path="/dashboard/tests" element={<TestPriceManager />} />
-          <Route path="/dashboard/call-logs" element={<CallLogs />} />
-          <Route path="/dashboard/settings" element={<Settings />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <ToastProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route element={<ProtectedLayout />}>
+            <Route index element={<Navigate to="/dashboard/reports" replace />} />
+            <Route path="/dashboard/reports" element={<ReportStatusManager />} />
+            <Route
+              path="/dashboard/home-collections"
+              element={<HomeCollectionCalendar />}
+            />
+            <Route path="/dashboard/tests" element={<TestPriceManager />} />
+            <Route path="/dashboard/call-logs" element={<CallLogs />} />
+            <Route path="/dashboard/settings" element={<Settings />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </ToastProvider>
   )
 }
 

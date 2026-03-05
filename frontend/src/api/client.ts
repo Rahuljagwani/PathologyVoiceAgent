@@ -6,7 +6,34 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
 
 export interface ApiError extends Error {
   status?: number
-  data?: unknown
+  data?:
+    | {
+        success?: boolean
+        message?: string
+        details?: unknown
+        [key: string]: unknown
+      }
+    | string
+    | null
+}
+
+export function getErrorMessage(error: unknown, fallback = 'Something went wrong'): string {
+  const err = error as ApiError | undefined
+  const data = err?.data as Record<string, unknown> | string | null | undefined
+
+  if (data && typeof data === 'object' && typeof data.message === 'string' && data.message.trim()) {
+    return data.message
+  }
+
+  if (typeof data === 'string' && data.trim()) {
+    return data
+  }
+
+  if (err?.message && err.message !== 'API request failed') {
+    return err.message
+  }
+
+  return fallback
 }
 
 function getAccessToken() {
@@ -70,16 +97,23 @@ async function request<T>(
   })
 
   const text = await response.text()
-  const data = text ? (JSON.parse(text) as T) : (undefined as unknown as T)
+  let data: unknown = undefined
+  if (text) {
+    try {
+      data = JSON.parse(text)
+    } catch {
+      data = text
+    }
+  }
 
   if (!response.ok) {
     const err: ApiError = new Error('API request failed')
     err.status = response.status
-    err.data = data
+    err.data = (data as ApiError['data']) ?? null
     throw err
   }
 
-  return data
+  return data as T
 }
 
 export const api = {
