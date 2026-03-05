@@ -29,8 +29,7 @@ class Settings(BaseSettings):
     # In production, override via env var, e.g.:
     # CORS_ALLOW_ORIGINS=http://localhost:3000,http://localhost:5173,https://your-frontend-domain.com
     CORS_ALLOW_ORIGINS: List[str] = [
-        "http://localhost:3000",
-        "http://localhost:5173",
+        "*"
     ]
 
 
