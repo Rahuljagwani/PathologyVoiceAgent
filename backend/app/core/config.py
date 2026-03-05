@@ -26,6 +26,8 @@ class Settings(BaseSettings):
 
     # CORS
     # Include common local frontend ports by default (CRA: 3000, Vite: 5173).
+    # In production, override via env var, e.g.:
+    # CORS_ALLOW_ORIGINS=http://localhost:3000,http://localhost:5173,https://your-frontend-domain.com
     CORS_ALLOW_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://localhost:5173",

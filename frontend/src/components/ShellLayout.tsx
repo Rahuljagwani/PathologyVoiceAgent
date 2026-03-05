@@ -14,12 +14,17 @@ export function ShellLayout() {
   return (
     <div className="flex min-h-screen bg-slate-50 text-slate-900">
       <aside className="hidden w-64 flex-shrink-0 border-r border-slate-200 bg-white/80 px-4 py-6 shadow-sm sm:block">
-        <div className="mb-8">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Pathology Voice
+        <div className="mb-8 flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900">
+            <span className="text-xs font-semibold text-emerald-400">PV</span>
           </div>
-          <div className="text-lg font-semibold text-slate-900">
-            Lab Dashboard
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Pathology Voice
+            </div>
+            <div className="text-sm font-semibold text-slate-900">
+              Lab Dashboard
+            </div>
           </div>
         </div>
         <nav className="space-y-1 text-sm">
@@ -45,7 +50,7 @@ export function ShellLayout() {
       <div className="flex min-h-screen flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-slate-200 bg-white/80 px-4 py-3 shadow-sm">
           <div className="text-sm font-medium text-slate-700">
-            Pathology Lab Voice Agent
+            Pathology Lab Voice Dashboard
           </div>
           <HeaderRight />
         </header>
