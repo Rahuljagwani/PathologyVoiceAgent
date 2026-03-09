@@ -1,84 +1,208 @@
 ## Pathology Lab Voice Agent
 
-FastAPI + React/Tailwind starter for a voice AI agent SaaS for independent pathology labs in India. Commit 1 focuses only on a clean, runnable skeleton with environment wiring; business logic and database schema come in later commits.
+Backend + minimal frontend for a voice AI assistant (“Priya”) that answers calls for pathology labs and reads data from Supabase via a FastAPI backend.
 
-### Backend (FastAPI)
+---
 
-- Location: `backend/`
-- Entrypoint: `app/main.py`
-- Health check: `GET /api/health`
-- Placeholder routers are mounted under `/api/*` for:
-  - `auth`, `labs`, `reports`, `tests`, `home-collections`, `calls`, `dashboard`, `bolna`
+### Deployed app
 
-#### Backend setup
+- **Dashboard (frontend) login**: [`https://pathologysoftware.netlify.app/login`](https://pathologysoftware.netlify.app/login)
 
-1. Create `backend/.env` from the example:
+---
+
+### Project status
+
+- **Status**: In progress  
+- **What works today**:
+  - Backend API and Supabase schema.
+  - Frontend dashboard pages for labs, reports, tests, home‑collections, and call logs.
+  - Priya Bolna agent reading lab settings + reports/tests/home‑collections via `GET /api/bolna/caller-context`.
+- **Planned next**:
+  - Wire more Bolna tools for write‑backs (e.g. creating bookings, updating statuses) directly via backend endpoints.
+
+---
+
+### Backend setup (FastAPI + Supabase)
+
+- **Location**: `backend/`  
+- **Entrypoint**: `app/main.py`  
+- **Health check**: `GET /api/health`
+
+#### 1. Environment and dependencies
+
+- **Create env file**:
 
 ```bash
 cp backend/.env.example backend/.env
 ```
 
-2. (Optional) Activate your virtualenv, then install dependencies:
+- **Install deps** (inside your virtualenv if you use one):
 
 ```bash
 pip install -r backend/requirements.txt
 ```
 
-3. Run the API locally:
+- **Set Supabase + JWT + Bolna in `backend/.env`**:
+  - **`SUPABASE_URL`**, **`SUPABASE_SERVICE_KEY`**
+  - **`JWT_SECRET`** (any strong string)
+  - **`BOLNA_WEBHOOK_SECRET`** (shared secret for Bolna context calls)
+
+- **Apply DB schema in Supabase**:
+  - In Supabase SQL editor, run: `backend/migrations/001_init_schema.sql`.
+
+- **Run API locally**:
 
 ```bash
 cd backend
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### Frontend (React + Vite + Tailwind)
+---
 
-- Location: `frontend/`
-- Routing is set up with placeholder pages for:
-  - `/dashboard/reports` — Report Status Manager
-  - `/dashboard/home-collections` — Home Collection Calendar
-  - `/dashboard/tests` — Test & Price Manager
-  - `/dashboard/call-logs` — Call Logs
-  - `/dashboard/settings` — Settings
-  - `/login` — Lab owner login (auth wired in a later commit)
+### Frontend (dashboard) – optional but recommended
 
-#### Frontend setup
+The React/Vite dashboard lets you seed data (reports, tests, home collections) easily.
 
-1. Create `frontend/.env` from the example:
+- **Location**: `frontend/`
+
+#### Steps
+
+- **Create env**:
 
 ```bash
 cp frontend/.env.example frontend/.env
 ```
 
-2. Install dependencies (Node 20+ recommended for the Vite toolchain):
+Ensure:
+
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+- **Install + run**:
 
 ```bash
 cd frontend
 npm install
-```
-
-3. Run the dev server:
-
-```bash
 npm run dev
 ```
 
-### External services
+Open the printed URL (usually `http://localhost:5173`), sign up a lab owner via `/login`, and use the dashboard to create:
 
-Supabase, Bolna, and Twilio configuration are represented only as environment variables in Commit 1. You can leave their values blank for now; later commits will use them when implementing schema, call flows, and telephony.
+- **Labs/settings** (lab name, address, escalation phone, timings, payment modes).
+- **Reports** (ready/pending).
+- **Tests & prices** (names, fasting, prices).
+- **Home collections** (optional).
 
-#### Bolna agent end‑to‑end testing (high level)
+The **latest created lab** in `lab_settings` is what Priya will use on calls.
 
-To exercise the full **phone → Bolna → FastAPI → Supabase → dashboard** flow:
+---
 
-1. Apply `backend/migrations/001_init_schema.sql` in your Supabase project.
-2. Configure `backend/.env` with Supabase + JWT (and optional `BOLNA_WEBHOOK_SECRET`), then run:
-   - `uvicorn app.main:app --reload --host 0.0.0.0 --port 8000`
-3. Configure and run the frontend (`VITE_API_BASE_URL=http://localhost:8000`, then `npm run dev`), sign up a lab owner via `/login`, and seed some reports/tests/home‑collections via the dashboard.
-4. Deploy the backend to a public URL, export `BOLNA_API_KEY` and `BASE_URL`, and run:
-   - `python backend/scripts/create_bolna_lab_agent_priya.py`
-   - Store the returned `agent_id` into `lab_settings.bolna_agent_id` for your lab.
-5. In the Bolna dashboard, assign an inbound phone number to that agent (and optionally forward your existing lab number to it).
-6. Call the agent’s phone number from your mobile and verify behaviour using the scenarios in `bolnaagenttest.md` (local test guide; not committed).
+### Bolna agent (Priya) – creation and number
 
+You need a Bolna account and an API key.
 
+- **Create the agent via helper script** (once, from repo root):
+
+```bash
+cd backend
+export BOLNA_API_KEY="YOUR_REAL_BOLNA_API_KEY"
+export BASE_URL="https://YOUR-PUBLIC-BACKEND"  # see next section
+python scripts/create_bolna_lab_agent_priya.py
+```
+
+This prints a JSON containing:
+
+- **`agent_id`** – use this in Bolna + (optionally) `lab_settings.bolna_agent_id`.
+- **`inbound_phone_number`** – this is the number you actually dial from your phone.
+
+In the **Bolna dashboard**, open this agent and in the telephony section you can also see / change the **inbound phone number**. That is the single number to use for all testing (you can forward your lab’s public number to it if you want).
+
+---
+
+### Current server‑side wiring (read‑only)
+
+Right now, what is guaranteed to work is **data retrieval** via Bolna’s context API:
+
+- **`GET /api/bolna/caller-context`**
+  - Called by Bolna once at the start of each call.
+  - Returns, for the **most recently created lab** in `lab_settings`:
+    - **`lab_id`**, **`lab_name`**, **`address`**, **`language_preference`**, **`escalation_phone`**
+    - **`reports`**: up to 100 recent rows from `reports` for that `lab_id`
+    - **`tests`**: up to 200 rows from `test_price_master` for that `lab_id`
+    - **`home_collections`**: up to 100 recent rows from `home_collections` for that `lab_id`
+- Priya’s system prompt and welcome message use `{lab_name}`, so she will speak the correct **lab name** as long as this context call succeeds.
+- Write‑back via POST tools (e.g. creating bookings) depends on extra Bolna `api_tools` wiring and may not be active in your Bolna environment yet.
+
+---
+
+### How to test on a real phone call (retrieval only)
+
+These steps assume:
+
+- Backend is running locally (`http://localhost:8000`).
+- Supabase has data for the **latest** lab (lab settings + some reports/tests/home‑collections).
+
+#### 1. Expose backend to Bolna
+
+- Deploy the backend or run a tunnel, for example:
+
+```bash
+ngrok http 8000
+```
+
+This gives you a URL like `https://YOUR-PUBLIC-URL`.
+
+- In the **Bolna dashboard** for Priya:
+  - **Webhook URL**: `https://YOUR-PUBLIC-URL/api/bolna/webhook`
+  - **Context source**:
+    - `source_type = "api"`
+    - `source_url = "https://YOUR-PUBLIC-URL/api/bolna/caller-context"`
+    - `source_auth_token = BOLNA_WEBHOOK_SECRET` from `backend/.env`
+
+Bolna will now call your `/caller-context` endpoint at the start of each call and get all lab data as JSON.
+
+#### 2. Seed data for the latest lab
+
+Using the dashboard (frontend) for the lab you created **most recently**:
+
+- **Settings**: fill `lab_name`, `address`, `escalation_phone`, timings, payment modes.
+- **Reports**: add at least one “ready” and one “pending” report.
+- **Tests**: add tests like **Lipid Profile** with fasting + price.
+- **Home collections**: optional, but you can create a couple of bookings.
+
+This is the data Priya will see in the `reports`, `tests`, and `home_collections` arrays in context.
+
+#### 3. Call Priya’s number
+
+- From your mobile, **dial the inbound number** shown for the Priya agent in the Bolna dashboard (and in `priya.json` under `inbound_phone_number`).
+
+On the call, verify:
+
+- **Lab name greeting**
+  - She should say:  
+    “Namaste, main Priya bol rahi hoon, \<your lab name\> ki taraf se.”
+
+- **Report retrieval (from context)**
+  - Ask: “Mera CBC report Rahul Sharma naam se ready hai kya?”
+  - Priya should reason over the `reports` list from context and tell you whether it’s ready, without interpreting values.
+
+- **Test preparation / pricing (from context)**
+  - Ask: “Lipid profile test ke liye fasting chahiye kya?”
+  - Ask: “Lipid profile ka rate kitna hai?”
+  - She should use the `tests` list from context to answer fasting requirements and prices.
+
+- **Lab info (from settings)**
+  - Ask: “Aapke lab ke timings kya hain?” or “Address kya hai, landmark ke saath bataiye.”
+  - She should respond using `lab_name`, `address`, and timings you configured.
+
+#### 4. (Optional) Inspect the raw context directly
+
+To see exactly what Priya sees during a call, hit the context endpoint yourself:
+
+```bash
+curl -H "Authorization: Bearer <BOLNA_WEBHOOK_SECRET>" \
+  "https://YOUR-PUBLIC-URL/api/bolna/caller-context?contact_number=TEST&agent_id=<agent_id>&execution_id=TEST"
+```
+
+You should see a JSON object containing `lab_id`, `lab_name`, and arrays of `reports`, `tests`, and `home_collections` for the latest lab. If this looks correct and you have configured the Bolna agent URLs as above, Priya’s answers on the phone should line up with what you see here.

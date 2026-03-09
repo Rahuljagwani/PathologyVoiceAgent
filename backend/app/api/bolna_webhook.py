@@ -117,18 +117,45 @@ async def bolna_caller_context(
         return {}
 
     lab_settings = data[0]
+    lab_id = lab_settings.get("lab_id")
+
+    # Preload key Supabase data for this lab into the context so Priya can
+    # answer questions even when explicit API tools are not configured.
+    reports_result = (
+        supabase.table("reports")
+        .select("*")
+        .eq("lab_id", lab_id)
+        .order("sample_date", desc=True)
+        .limit(100)
+        .execute()
+    )
+    tests_result = (
+        supabase.table("test_price_master")
+        .select("*")
+        .eq("lab_id", lab_id)
+        .order("test_name", desc=False)
+        .limit(200)
+        .execute()
+    )
+    home_collections_result = (
+        supabase.table("home_collections")
+        .select("*")
+        .eq("lab_id", lab_id)
+        .order("created_at", desc=True)
+        .limit(100)
+        .execute()
+    )
 
     # Only return fields that are useful as prompt variables.
-    # Include lab_id so tools (reports, tests, home collections) can scope correctly.
     context = {
-        "lab_id": lab_settings.get("lab_id"),
+        "lab_id": lab_id,
         "lab_name": lab_settings.get("lab_name"),
         "address": lab_settings.get("address"),
         "language_preference": lab_settings.get("language_preference"),
         "escalation_phone": lab_settings.get("escalation_phone"),
+        "reports": reports_result.data or [],
+        "tests": tests_result.data or [],
+        "home_collections": home_collections_result.data or [],
     }
-
-    # If you ever want to use execution_id in your prompt, you can uncomment this:
-    # context["execution_id"] = execution_id
 
     return context
