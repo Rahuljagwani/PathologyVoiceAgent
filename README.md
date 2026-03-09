@@ -6,7 +6,7 @@ Backend + minimal frontend for a voice AI assistant (“Priya”) that answers c
 
 ### Deployed app
 
-- **Dashboard (frontend) login**: [`https://pathologysoftware.netlify.app/login`](https://pathologysoftware.netlify.app/login)
+- **Dashboard (frontend) login**: [`pathologysoftware.netlify.app`](pathologysoftware.netlify.app)
 
 ---
 
