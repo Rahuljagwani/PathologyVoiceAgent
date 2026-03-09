@@ -67,6 +67,8 @@ async def create_lab(
                 "address": payload.address,
                 "escalation_phone": payload.escalation_phone,
                 "language_preference": payload.language_preference,
+                # Default Priya Bolna agent for all newly created labs.
+                "bolna_agent_id": "26ceb7ea-2c43-4bf2-9eab-0e77ee61e28b",
             }
         )
         .execute()
