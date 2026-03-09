@@ -8,6 +8,11 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     ENVIRONMENT: str = "development"
+
+    # Server
+    # Default port is 8000, but can be overridden via env var, e.g.:
+    # PORT=9000
+    PORT: int = 8000
     BASE_URL: str = "http://localhost:8000"
 
     # Supabase

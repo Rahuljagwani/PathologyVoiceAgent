@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+import uvicorn
 
 from app.api.router import api_router
 from app.core.config import get_settings
@@ -67,6 +68,10 @@ def create_app() -> FastAPI:
     async def health_check():
         return {"status": "ok"}
 
+    @app.get("/")
+    def health():
+        return {"status": "running"}
+
     app.include_router(api_router, prefix="/api")
 
     return app
@@ -74,3 +79,11 @@ def create_app() -> FastAPI:
 
 app = create_app()
 
+if __name__ == "__main__":
+    settings = get_settings()
+    uvicorn.run(
+        "app.main:app",
+        host="0.0.0.0",
+        port=settings.PORT,
+        reload=True,
+    )

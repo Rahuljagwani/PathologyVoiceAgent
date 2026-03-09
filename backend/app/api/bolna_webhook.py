@@ -101,23 +101,27 @@ async def bolna_caller_context(
     _validate_bearer_token(authorization)
 
     supabase = get_supabase_client()
+    # For now, always use the most recently created lab_settings row,
+    # effectively mapping this single Bolna agent to the latest lab.
     result = (
         supabase.table("lab_settings")
         .select("*")
-        .eq("bolna_agent_id", agent_id)
+        .order("created_at", desc=True)
         .limit(1)
         .execute()
     )
 
     data = result.data or []
     if not data:
-        # No matching lab configured for this agent; return empty context
+        # No labs configured yet; return empty context
         return {}
 
     lab_settings = data[0]
 
     # Only return fields that are useful as prompt variables.
+    # Include lab_id so tools (reports, tests, home collections) can scope correctly.
     context = {
+        "lab_id": lab_settings.get("lab_id"),
         "lab_name": lab_settings.get("lab_name"),
         "address": lab_settings.get("address"),
         "language_preference": lab_settings.get("language_preference"),
