@@ -173,7 +173,7 @@ Using the dashboard (frontend) for the lab you created **most recently**:
 
 This is the data Priya will see in the `reports`, `tests`, and `home_collections` arrays in context.
 
-#### 3. Call Priya’s number
+#### 3. Call Priya’s number (Visible on bottom left of login screen)
 
 - From your mobile, **dial the inbound number** shown for the Priya agent in the Bolna dashboard (and in `priya.json` under `inbound_phone_number`).
 
